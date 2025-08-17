@@ -1,5 +1,6 @@
 /tmp
 /out-tsc
+/testing
 
 /node_modules
 npm-debug.log*
