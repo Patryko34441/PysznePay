@@ -9,7 +9,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
             observer.disconnect();
 
             const totalAmount = getTotalAmount();
-            console.log("Total amount:", totalAmount);
+            //console.log("Total amount:", totalAmount);
             if (totalAmount === 0) {
                 const section = document.querySelector('[data-qa^="payment-info-payment-method-info"]');
                 if (section) {
@@ -31,12 +31,14 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
             const sharedTotal = deliveryCost + serviceCharge + discount + voucher;
             const sharedCost = sharedTotal / peopleCount;
 
+            console.log("#####PysznePay#####")
             console.log("Delivery:", deliveryCost);
             console.log("Service charge:", serviceCharge);
             console.log("Discount:", discount);
             console.log("Voucher:", voucher);
             console.log("People count:", peopleCount);
             console.log("Shared cost per person:", sharedCost);
+            console.log("###################")
 
             peopleDivs.forEach((person, index) => {
                 const name = person.textContent?.trim() || "Nieznane";
@@ -50,7 +52,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
                     const quantity = parseInt(quantityText) || 1;
                     const priceText = item.querySelector('[data-qa="item-details-product-price"]')?.textContent?.replace("zł", "").replace(",", ".").trim() || "0";
                     const price = parseFloat(priceText) || 0;
-                    total += price * quantity;
+                    total += price
                 });
 
                 if (items.length > 0) {
@@ -59,15 +61,16 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
                     const combined = (total + sharedCost).toFixed(2);
 
                     const inputWrapper = document.createElement("div");
-                    inputWrapper.style.marginTop = "4px";
+                    inputWrapper.style.marginTop = "5px";
+                    inputWrapper.style.marginLeft = "4px";
                     inputWrapper.style.display = "flex";
                     inputWrapper.style.alignItems = "center";
                     inputWrapper.style.gap = "8px";
 
                     const label = document.createElement("span");
-                    label.textContent = "PysznePay:";
-                    label.style.fontSize = "14px";
-                    label.style.fontWeight = "500";
+                    label.textContent = "💵 PysznePay:";
+                    label.style.fontSize = "15px";
+                    label.style.fontWeight = "bold";
                     label.style.color = "#333";
 
                     const input = document.createElement("input");
@@ -85,17 +88,18 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
 
                     const button = document.createElement("button");
                     button.textContent = "Zapisz";
+                    button.style.fontWeight = "bold";
                     button.style.padding = "6px 10px";
                     button.style.cursor = "pointer";
                     button.style.fontSize = "13px";
-                    button.style.background = "#000";
+                    button.style.background = "#f36805";
                     button.style.color = "#fff";
                     button.style.border = "none";
                     button.style.borderRadius = "4px";
 
                     const payInfo = document.createElement("div");
-                    payInfo.style.marginTop = "4px";
-                    payInfo.style.color = "#444";
+                    payInfo.style.marginTop = "5px";
+                    payInfo.style.color = "#000";
                     payInfo.style.fontWeight = "bold";
                     payInfo.style.fontSize = "15px";
                     payInfo.style.lineHeight = "1.4";
@@ -103,7 +107,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
                     const updatePayText = () => {
                         const paid = parseFloat(input.value) || 0;
                         const toPay = (total + sharedCost - paid).toFixed(2);
-                        payInfo.textContent = `💵 Do przelania: ${toPay} zł`;
+                        payInfo.textContent = `💸 Do przelania: ${toPay} zł`;
                     };
 
                     button.onclick = () => {
