@@ -1,251 +1,278 @@
 "use strict";
 if (window.location.href.includes("/foodtracker/") || window.location.href.includes("foodtracker")) {
-    const userAmounts = {};
-    const observer = new MutationObserver(() => {
-        const peopleDivs = document.querySelectorAll('[data-qa="participant-name"]');
-        if (peopleDivs.length > 0) {
-            observer.disconnect();
-            const totalAmount = getTotalAmount();
-            //console.log("Total amount:", totalAmount);
-            if (totalAmount === 0) {
-                const section = document.querySelector('[data-qa^="payment-info-payment-method-info"]');
-                if (section) {
-                    const msg = document.createElement("div");
-                    msg.style.marginTop = "16px";
-                    msg.style.fontWeight = "bold";
-                    msg.style.fontSize = "16px";
-                    msg.textContent = "ℹ️ Całkowita wartość zamówienia wynosi 0 zł – nie trzeba nic przelewać.";
-                    section.appendChild(msg);
-                }
-                return;
+    let attempts = 0;
+    const checkExist = setInterval(() => {
+        const elements = document.querySelectorAll('[data-qa*="receipt"]');
+        attempts++;
+        if (elements.length > 0) {
+            let peopleDivs = getPersonsElementsFromHTML();
+            clearInterval(checkExist);
+            let blikAmountsList = [];
+            let summaryArray = [];
+            summaryArray.push(namePicker());
+            summaryArray.push(getSumsForPersons());
+            summaryArray.push(getEachCostFromSummary());
+            let pysznePayList = Array(summaryArray[0].length).fill(25);
+            let fontsize = "18px";
+            peopleDivs.htmlElement.forEach((item, index) => {
+                const extensionWrapper = document.createElement("div");
+                extensionWrapper.style.padding = "10px";
+                const productSummaryDiv = document.createElement("div");
+                let summaryValue = summaryArray[1][index].toFixed(2);
+                productSummaryDiv.innerHTML = `Łączna wartość 🍔 to: ` + `<strong>${summaryValue} zł <\strong>`;
+                productSummaryDiv.style.fontSize = fontsize;
+                productSummaryDiv.style.marginBottom = "10px";
+                const pysznePayDiv = document.createElement("div");
+                pysznePayDiv.style.display = "flex";
+                pysznePayDiv.style.marginBottom = "10px";
+                const textDiv = document.createElement("div");
+                textDiv.innerHTML = `PysznePay:`;
+                textDiv.style.paddingTop = "8px";
+                textDiv.style.paddingRight = "5px";
+                textDiv.style.fontSize = fontsize;
+                const pysznePayAmount = document.createElement("input");
+                pysznePayAmount.type = "number";
+                pysznePayAmount.min = "0";
+                pysznePayAmount.step = "0.01";
+                pysznePayAmount.value = "25";
+                pysznePayAmount.style.fontSize = fontsize;
+                pysznePayAmount.style.marginRight = "10px";
+                const pysznepayButton = document.createElement("button");
+                pysznepayButton.textContent = "Zapisz";
+                pysznepayButton.style.color = "#fff";
+                pysznepayButton.style.fontFamily = "Arial, sans-serif";
+                pysznepayButton.style.fontWeight = "bold";
+                pysznepayButton.style.padding = "5px 12px";
+                pysznepayButton.style.borderColor = "#fff";
+                pysznepayButton.onmouseover = () => {
+                    pysznepayButton.style.backgroundColor = "#d65c04";
+                };
+                pysznepayButton.onmouseout = () => {
+                    pysznepayButton.style.borderColor = "#f36805";
+                };
+                pysznepayButton.style.backgroundColor = "#f36805";
+                pysznepayButton.style.alignContent = "center";
+                pysznepayButton.style.borderRadius = "50px";
+                pysznepayButton.style.fontSize = fontsize;
+                pysznepayButton.onclick = () => {
+                    const newValue = pysznePayAmount.value;
+                    pysznePayList[index] = parseFloat(newValue);
+                    const blikAmount = (summaryArray[1][index] + costPerPerson - pysznePayList[index]).toFixed(2);
+                    blikAmountDiv.innerHTML = `Do przelania 💸 : ` + `<strong>${blikAmount} zł<\strong>`;
+                    blikAmountsList[index] = parseFloat(blikAmount);
+                    validateCalculation(summaryArray);
+                };
+                pysznePayDiv.appendChild(textDiv);
+                pysznePayDiv.append(pysznePayAmount);
+                pysznePayDiv.append(pysznepayButton);
+                const splitCostDiv = document.createElement("div");
+                let costPerPerson = (summaryArray[2].slice(1, summaryArray[2].length - 1).reduce((a, b) => a + b, 0)) / summaryArray[0].length;
+                splitCostDiv.innerHTML = `Kurier 🚲 + Koszty💰: ` + `<strong>${costPerPerson.toFixed(2)} zł<\strong>`;
+                splitCostDiv.style.fontSize = String(fontsize);
+                splitCostDiv.style.fontSize = fontsize;
+                splitCostDiv.style.marginBottom = "10px";
+                const blikAmountDiv = document.createElement("div");
+                const value = (summaryArray[1][index] + costPerPerson - pysznePayList[index]);
+                const blikAmount = value >= 0 ? value.toFixed(2) : "0";
+                blikAmountDiv.innerHTML = `Do przelania 💸 : ` + `<strong>${blikAmount} zł<\strong>`;
+                blikAmountsList.push(parseFloat(blikAmount));
+                blikAmountDiv.style.fontSize = fontsize;
+                blikAmountDiv.style.marginBottom = "5px";
+                extensionWrapper.classList.add("extension-wrapper");
+                extensionWrapper.append(productSummaryDiv);
+                extensionWrapper.append(pysznePayDiv);
+                extensionWrapper.append(splitCostDiv);
+                extensionWrapper.append(blikAmountDiv);
+                item.append(extensionWrapper);
+            });
+            summaryArray.push(blikAmountsList);
+            const receiptBottom = document.querySelector('[data-qa="receipt"] [data-qa="list"]');
+            const mobilePhoneDivWrapper = document.createElement("div");
+            mobilePhoneDivWrapper.style.display = "flex";
+            mobilePhoneDivWrapper.style.margin = "30px 10px 10px 10px";
+            mobilePhoneDivWrapper.style.width = "100%";
+            mobilePhoneDivWrapper.style.borderTop = "1px solid #ebebeb";
+            const textMobilePhoneDiv = document.createElement("div");
+            textMobilePhoneDiv.innerHTML = `Wprowadź numer telefonu do przelewu :`;
+            textMobilePhoneDiv.style.paddingTop = "8px";
+            textMobilePhoneDiv.style.paddingRight = "5px";
+            textMobilePhoneDiv.style.marginLeft = "15px";
+            textMobilePhoneDiv.style.fontSize = "15px";
+            const mobilePhoneNumberInput = document.createElement("input");
+            mobilePhoneNumberInput.type = "number";
+            mobilePhoneNumberInput.min = "0";
+            mobilePhoneNumberInput.step = "0.01";
+            let phoneNumberFromLS = localStorage.getItem("phoneNumber");
+            if (phoneNumberFromLS) {
+                mobilePhoneNumberInput.placeholder = phoneNumberFromLS;
             }
-            const deliveryCost = getDeliveryCost();
-            const serviceCharge = getServiceCharge();
-            const discount = getDiscount();
-            const voucher = getVoucher();
-            const peopleCount = peopleDivs.length;
-            const sharedTotal = deliveryCost + serviceCharge + discount + voucher;
-            const sharedCost = sharedTotal / peopleCount;
-            console.log("#####PysznePay#####");
-            console.log("Delivery:", deliveryCost);
-            console.log("Service charge:", serviceCharge);
-            console.log("Discount:", discount);
-            console.log("Voucher:", voucher);
-            console.log("People count:", peopleCount);
-            console.log("Shared cost per person:", sharedCost);
-            console.log("###################");
-            peopleDivs.forEach((person, index) => {
-                var _a, _b, _c, _d, _e;
-                const name = ((_a = person.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || "Nieznane";
-                const userBlock = (_b = person.closest('div[data-qa="util"]')) === null || _b === void 0 ? void 0 : _b.parentElement;
-                if (!userBlock)
-                    return;
-                const items = userBlock.querySelectorAll('li[data-qa="list-item"]');
-                let total = 0;
-                items.forEach(item => {
-                    var _a, _b, _c, _d;
-                    const quantityText = ((_b = (_a = item.querySelector('.item-style_quantity-text__jlSnT span')) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.trim()) || "1";
-                    const quantity = parseInt(quantityText) || 1;
-                    const priceText = ((_d = (_c = item.querySelector('[data-qa="item-details-product-price"]')) === null || _c === void 0 ? void 0 : _c.textContent) === null || _d === void 0 ? void 0 : _d.replace("zł", "").replace(",", ".").trim()) || "0";
-                    const price = parseFloat(priceText) || 0;
-                    total += price;
-                });
-                if (items.length > 0) {
-                    const totalRounded = total.toFixed(2);
-                    const sharedRounded = sharedCost.toFixed(2);
-                    const combined = (total + sharedCost).toFixed(2);
-                    const inputWrapper = document.createElement("div");
-                    inputWrapper.style.marginTop = "5px";
-                    inputWrapper.style.marginLeft = "4px";
-                    inputWrapper.style.display = "flex";
-                    inputWrapper.style.alignItems = "center";
-                    inputWrapper.style.gap = "8px";
-                    const label = document.createElement("span");
-                    label.textContent = "💵 PysznePay:";
-                    label.style.fontSize = "15px";
-                    label.style.fontWeight = "bold";
-                    label.style.color = "#333";
-                    const input = document.createElement("input");
-                    input.type = "number";
-                    input.min = "0";
-                    input.step = "0.01";
-                    input.placeholder = "Wpłata";
-                    // @ts-ignore
-                    input.value = userAmounts[name] !== undefined ? userAmounts[name] : 25;
-                    input.style.width = "72px";
-                    input.style.padding = "4px 8px";
-                    input.style.border = "1px solid #ccc";
-                    input.style.borderRadius = "4px";
-                    input.style.fontSize = "14px";
-                    const button = document.createElement("button");
-                    button.textContent = "Zapisz";
-                    button.style.fontWeight = "bold";
-                    button.style.padding = "6px 10px";
-                    button.style.cursor = "pointer";
-                    button.style.fontSize = "13px";
-                    button.style.background = "#f36805";
-                    button.style.color = "#fff";
-                    button.style.border = "none";
-                    button.style.borderRadius = "4px";
-                    const payInfo = document.createElement("div");
-                    payInfo.style.marginTop = "5px";
-                    payInfo.style.color = "#000";
-                    payInfo.style.fontWeight = "bold";
-                    payInfo.style.fontSize = "15px";
-                    payInfo.style.lineHeight = "1.4";
-                    const updatePayText = () => {
-                        const paid = parseFloat(input.value) || 0;
-                        const toPay = (total + sharedCost - paid).toFixed(2);
-                        payInfo.textContent = `💸 Do przelania: ${toPay} zł`;
-                    };
-                    button.onclick = () => {
-                        // @ts-ignore
-                        userAmounts[name] = parseFloat(input.value) || 0;
-                        updatePayText();
-                    };
-                    updatePayText();
-                    const sumElement = document.createElement("div");
-                    sumElement.style.marginTop = "10px";
-                    sumElement.style.fontWeight = "bold";
-                    sumElement.style.color = "#000";
-                    sumElement.style.fontSize = "16px";
-                    sumElement.style.lineHeight = "1.4";
-                    sumElement.textContent = `💰 Suma dla ${name}: ${totalRounded} zł + ${sharedRounded} zł (koszty) = ${combined} zł`;
-                    inputWrapper.appendChild(label);
-                    inputWrapper.appendChild(input);
-                    inputWrapper.appendChild(button);
-                    const lastItem = items[items.length - 1];
-                    (_c = lastItem.parentElement) === null || _c === void 0 ? void 0 : _c.appendChild(sumElement);
-                    (_d = lastItem.parentElement) === null || _d === void 0 ? void 0 : _d.appendChild(inputWrapper);
-                    (_e = lastItem.parentElement) === null || _e === void 0 ? void 0 : _e.appendChild(payInfo);
+            else {
+                mobilePhoneNumberInput.placeholder = "Numer telefonu";
+            }
+            mobilePhoneNumberInput.style.fontSize = "18px";
+            mobilePhoneNumberInput.style.marginRight = "10px";
+            mobilePhoneNumberInput.style.marginTop = "5px";
+            const mobilePhoneNumberButton = document.createElement("button");
+            mobilePhoneNumberButton.textContent = "Zapisz";
+            mobilePhoneNumberButton.style.color = "#fff";
+            mobilePhoneNumberButton.style.fontFamily = "Arial, sans-serif";
+            mobilePhoneNumberButton.style.fontWeight = "bold";
+            mobilePhoneNumberButton.style.padding = "2px 14px";
+            mobilePhoneNumberButton.style.borderColor = "#fff";
+            mobilePhoneNumberButton.onmouseover = () => {
+                mobilePhoneNumberButton.style.backgroundColor = "#d65c04";
+            };
+            mobilePhoneNumberButton.onmouseout = () => {
+                mobilePhoneNumberButton.style.borderColor = "#f36805";
+            };
+            mobilePhoneNumberButton.style.backgroundColor = "#f36805";
+            mobilePhoneNumberButton.style.alignContent = "center";
+            mobilePhoneNumberButton.style.borderRadius = "50px";
+            mobilePhoneNumberButton.style.fontSize = fontsize;
+            mobilePhoneNumberButton.onclick = () => {
+                phoneNumberSetter(mobilePhoneNumberInput.value);
+            };
+            mobilePhoneDivWrapper.appendChild(textMobilePhoneDiv);
+            mobilePhoneDivWrapper.append(mobilePhoneNumberInput);
+            mobilePhoneDivWrapper.append(mobilePhoneNumberButton);
+            receiptBottom === null || receiptBottom === void 0 ? void 0 : receiptBottom.appendChild(mobilePhoneDivWrapper);
+            let copyButtonDiv = document.createElement("div");
+            copyButtonDiv.style.display = "flex";
+            copyButtonDiv.style.width = "100%";
+            copyButtonDiv.style.paddingTop = "8px";
+            copyButtonDiv.style.paddingBottom = "15px";
+            copyButtonDiv.style.alignItems = "center";
+            copyButtonDiv.style.justifyContent = "center";
+            let copyButton = document.createElement("button");
+            copyButton.textContent = "Skopiuj podsumowanie 🧾 ";
+            copyButton.style.color = "#fff";
+            copyButton.style.fontFamily = "Arial, sans-serif";
+            copyButton.style.fontWeight = "bold";
+            copyButton.style.padding = "5px 20px";
+            copyButton.style.borderColor = "#fff";
+            copyButton.style.backgroundColor = "#f36805";
+            copyButton.onmouseover = () => {
+                copyButton.style.backgroundColor = "#d65c04";
+            };
+            copyButton.onmouseout = () => {
+                copyButton.style.borderColor = "#f36805";
+            };
+            copyButton.style.alignContent = "center";
+            copyButton.style.borderRadius = "50px";
+            copyButton.style.fontSize = fontsize;
+            copyButton.onclick = () => {
+                let finalString = "";
+                if (phoneNumberFromLS != null) {
+                    finalString += `BLIK na numer : ${phoneNumberFromLS}\n\n`;
                 }
-            });
-            mountPhoneInput();
-            mountCopyButton();
+                else {
+                    finalString += `"Ustaw swój numer telefonu!"\n\n`;
+                }
+                let i = 1;
+                for (i; i < summaryArray[0].length; i++) {
+                    console.log(summaryArray[0][i]);
+                    finalString += `${summaryArray[0][i]} : ${summaryArray[3][i]} zł \n`;
+                }
+                navigator.clipboard.writeText(finalString);
+                console.log(summaryArray);
+            };
+            copyButtonDiv.appendChild(copyButton);
+            receiptBottom === null || receiptBottom === void 0 ? void 0 : receiptBottom.appendChild(copyButtonDiv);
+            console.log(summaryArray);
+            validateCalculation(summaryArray);
         }
-    });
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-    function getServiceCharge() {
-        const labelSpan = document.querySelector('[data-qa="payment-info-service-charge-text"]');
-        const container = labelSpan === null || labelSpan === void 0 ? void 0 : labelSpan.closest('[data-qa="flex"]');
-        const amountSpan = container === null || container === void 0 ? void 0 : container.querySelector('span[class^="formatted-currency-style_content"]');
-        const raw = (amountSpan === null || amountSpan === void 0 ? void 0 : amountSpan.textContent) || "0";
-        return parseFloat(raw.replace("zł", "").replace(",", ".").replace(/\s/g, "")) || 0;
-    }
-    function getDeliveryCost() {
-        const labelSpan = document.querySelector('[data-qa="payment-info-delivery-cost-text"]');
-        const container = labelSpan === null || labelSpan === void 0 ? void 0 : labelSpan.closest('[data-qa="flex"]');
-        const amountSpan = container === null || container === void 0 ? void 0 : container.querySelector('span[class^="formatted-currency-style_content"]');
-        const raw = (amountSpan === null || amountSpan === void 0 ? void 0 : amountSpan.textContent) || "0";
-        return parseFloat(raw.replace("zł", "").replace(",", ".").replace(/\s/g, "")) || 0;
-    }
-    function getDiscount() {
-        const labelSpan = document.querySelector('[data-qa="payment-info-discount-text"]');
-        const container = labelSpan === null || labelSpan === void 0 ? void 0 : labelSpan.closest('[data-qa="flex"]');
-        const amountSpan = container === null || container === void 0 ? void 0 : container.querySelector('span[class^="formatted-currency-style_content"]');
-        const raw = (amountSpan === null || amountSpan === void 0 ? void 0 : amountSpan.textContent) || "0";
-        return parseFloat(raw.replace("zł", "").replace(",", ".").replace(/\s/g, "")) || 0;
-    }
-    function getVoucher() {
-        const labelSpan = document.querySelector('[data-qa="payment-info-voucher-text"]');
-        const container = labelSpan === null || labelSpan === void 0 ? void 0 : labelSpan.closest('[data-qa="flex"]');
-        const amountSpan = container === null || container === void 0 ? void 0 : container.querySelector('span[class^="formatted-currency-style_content"]');
-        const raw = (amountSpan === null || amountSpan === void 0 ? void 0 : amountSpan.textContent) || "0";
-        return parseFloat(raw.replace("zł", "").replace(",", ".").replace(/\s/g, "")) || 0;
-    }
-    function getTotalAmount() {
-        const amountSpan = document.querySelector('[data-qa="payment-info-total-amount"] span[class^="formatted-currency-style_content"]');
-        const raw = (amountSpan === null || amountSpan === void 0 ? void 0 : amountSpan.textContent) || "0";
-        return parseFloat(raw.replace("zł", "").replace(",", ".").replace(/\s/g, "")) || 0;
-    }
-    function copySummaryToClipboard() {
-        const match = document.cookie.match(/(?:^|; )pysznePhone=([^;]*)/);
-        const people = document.querySelectorAll('[data-qa="participant-name"]');
-        const lines = [];
-        people.forEach((el, index) => {
-            var _a, _b;
-            if (index === 0)
-                return;
-            const name = ((_a = el.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || `Osoba ${index}`;
-            const container = (_b = el.closest("div[data-qa='util']")) === null || _b === void 0 ? void 0 : _b.parentElement;
-            const allDivs = (container === null || container === void 0 ? void 0 : container.querySelectorAll("div")) || [];
-            let amount = "0,00";
-            allDivs.forEach(div => {
-                var _a;
-                const match = (_a = div.textContent) === null || _a === void 0 ? void 0 : _a.match(/Do przelania: ([\d,.]+) zł/);
-                if (match)
-                    amount = match[1].replace(".", ",");
-            });
-            lines.push(`${name} - ${amount} zł`);
+        else if (attempts > 100) {
+            console.log("Przekroczono czas oczekiwania.");
+            clearInterval(checkExist);
+        }
+    }, 100);
+}
+//This function gathers all persons food costs, and sums them up.
+//As a return it is 1 dim array in order presented on site
+function getSumsForPersons() {
+    let persons = getPersonsElementsFromHTML();
+    let summarisedOrder = 0;
+    let resultslist = [];
+    persons.htmlElement.forEach((item) => {
+        summarisedOrder = 0;
+        item.querySelectorAll('[class^="formatted-currency-style_content"]').forEach((product) => {
+            let orderValue = priceHelper(product.innerHTML);
+            summarisedOrder += orderValue;
         });
-        lines.push("");
-        const configuredPhone = localStorage.getItem("pysznePhone") || "Ustaw numer!";
-        lines.push(`Na numer - ${configuredPhone}`);
-        navigator.clipboard.writeText(lines.join("\n"));
+        resultslist.push(summarisedOrder);
+    });
+    return resultslist;
+}
+//This function gets the HTML elements of the persons, so we can work only on these, without caring about entire DOM
+function getPersonsElementsFromHTML() {
+    const allPersons = document.querySelectorAll('[data-qa="receipt"] [data-qa="box"] > div:nth-of-type(2) > div > [data-qa="util"]');
+    return {
+        htmlElement: allPersons,
+    };
+}
+function validateCalculation(summaryArray) {
+    let pyszneFinalCost = 0;
+    const pyszneFinalCostHTML = document.querySelectorAll('[data-qa^="payment-info-total-amount"] [class^="formatted-currency"]');
+    pyszneFinalCostHTML.forEach((product) => {
+        pyszneFinalCost = priceHelper(product.innerHTML);
+    });
+    let calculatedFinalCost = (summaryArray[3].reduce((a, b) => a + b, 0));
+    //console.log(calculatedFinalCost)
+    const diff = Math.abs(calculatedFinalCost - pyszneFinalCost);
+    if (diff > 0.1) {
+        pyszneFinalCostHTML.forEach((product) => {
+            const cleanHTML = product.innerHTML.replace(/[❌✅]/g, '').trim();
+            product.setAttribute('style', 'color: red');
+            product.innerHTML = `${cleanHTML} ❌`;
+        });
     }
-    function mountCopyButton() {
-        const section = document.querySelector('[data-qa^="payment-info-payment-method-info"]');
-        if (!section || section.querySelector("#pyszne-copy-button"))
-            return;
-        const copyButton = document.createElement("button");
-        copyButton.id = "pyszne-copy-button";
-        copyButton.innerText = "📋 Skopiuj podsumowanie";
-        copyButton.style.padding = "10px 16px";
-        copyButton.style.marginTop = "20px";
-        copyButton.style.background = "#000";
-        copyButton.style.color = "#fff";
-        copyButton.style.border = "none";
-        copyButton.style.borderRadius = "8px";
-        copyButton.style.cursor = "pointer";
-        copyButton.style.fontSize = "14px";
-        copyButton.addEventListener("click", copySummaryToClipboard);
-        section.appendChild(copyButton);
+    else {
+        pyszneFinalCostHTML.forEach((product) => {
+            const cleanHTML = product.innerHTML.replace(/[❌✅]/g, '').trim();
+            product.setAttribute('style', 'color: green');
+            product.innerHTML = `${cleanHTML} ✅`;
+        });
     }
 }
-function mountPhoneInput() {
-    const section = document.querySelector('[data-qa^="payment-info-payment-method-info"]');
-    if (!section || section.querySelector("#pyszne-phone-wrapper"))
-        return;
-    const wrapper = document.createElement("div");
-    wrapper.id = "pyszne-phone-wrapper";
-    wrapper.style.display = "flex";
-    wrapper.style.alignItems = "center";
-    wrapper.style.gap = "8px";
-    wrapper.style.marginTop = "20px";
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = "Numer telefonu";
-    input.style.padding = "8px";
-    input.style.border = "1px solid #ccc";
-    input.style.borderRadius = "6px";
-    input.style.fontSize = "14px";
-    input.style.flex = "1";
-    // Odczytaj z localStorage
-    const saved = localStorage.getItem("pysznePhone");
-    if (saved) {
-        input.value = saved;
+//function collects prices visible in the summary, beginning always with the order summary, and following by order costs PysznePay deduction etc.
+function getEachCostFromSummary() {
+    const sumList = [];
+    const paymentSummary = document.querySelectorAll('[data-qa^="list-item-element"] [data-qa*="util"] [data-qa*="flex"] div:nth-of-type(2) span');
+    if (paymentSummary.length > 0) {
+        paymentSummary.forEach((item) => {
+            let value = item.innerHTML;
+            sumList.push(priceHelper(value));
+        });
+        //console.log(sumList);
+        return sumList;
     }
-    const saveBtn = document.createElement("button");
-    saveBtn.textContent = "Zapisz";
-    saveBtn.style.padding = "8px 14px";
-    saveBtn.style.fontSize = "14px";
-    saveBtn.style.fontWeight = "bold";
-    saveBtn.style.background = "#000";
-    saveBtn.style.color = "#fff";
-    saveBtn.style.border = "none";
-    saveBtn.style.borderRadius = "6px";
-    saveBtn.style.cursor = "pointer";
-    saveBtn.addEventListener("click", () => {
-        const phone = input.value.trim();
-        if (phone) {
-            localStorage.setItem("pysznePhone", phone);
-            alert("📱 Numer zapisany!");
-        }
+    else {
+        console.log("No data has been found - Cost summary");
+    }
+}
+function phoneNumberSetter(text) {
+    localStorage.setItem("phoneNumber", text);
+}
+//This function gathers the names of the persons included in the order
+function namePicker() {
+    let persons = getPersonsElementsFromHTML();
+    let namelist = [];
+    persons.htmlElement.forEach((item) => {
+        item.querySelectorAll('[data-qa="participant-name"]').forEach((name) => {
+            namelist.push(name.innerHTML);
+            //console.log(namelist)
+        });
     });
-    wrapper.appendChild(input);
-    wrapper.appendChild(saveBtn);
-    section.appendChild(wrapper);
+    return namelist;
+}
+//Helper function to get rid of the currency within HTML elements of prices
+function priceHelper(value) {
+    if (value == "Za darmo") {
+        value = "0";
+    }
+    else {
+        value = value.replace("&nbsp;zł", "");
+        value = value.replace(",", ".");
+    }
+    return parseFloat(value);
 }
