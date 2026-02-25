@@ -89,7 +89,8 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
             const receiptBottom = document.querySelector('[data-qa="receipt"] [data-qa="list"]');
             const mobilePhoneDivWrapper = document.createElement("div");
             mobilePhoneDivWrapper.style.display = "flex";
-            mobilePhoneDivWrapper.style.margin = "30px 10px 10px 10px";
+            mobilePhoneDivWrapper.style.margin = "30px 10px 10px 0px";
+            mobilePhoneDivWrapper.style.paddingTop = "10px";
             mobilePhoneDivWrapper.style.width = "100%";
             mobilePhoneDivWrapper.style.borderTop = "1px solid #ebebeb";
             const textMobilePhoneDiv = document.createElement("div");
@@ -133,8 +134,8 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
                 phoneNumberSetter(mobilePhoneNumberInput.value);
             };
             mobilePhoneDivWrapper.appendChild(textMobilePhoneDiv);
-            mobilePhoneDivWrapper.append(mobilePhoneNumberInput);
-            mobilePhoneDivWrapper.append(mobilePhoneNumberButton);
+            mobilePhoneDivWrapper.appendChild(mobilePhoneNumberInput);
+            mobilePhoneDivWrapper.appendChild(mobilePhoneNumberButton);
             receiptBottom === null || receiptBottom === void 0 ? void 0 : receiptBottom.appendChild(mobilePhoneDivWrapper);
             let copyButtonDiv = document.createElement("div");
             copyButtonDiv.style.display = "flex";
@@ -221,16 +222,16 @@ function validateCalculation(summaryArray) {
     const diff = Math.abs(calculatedFinalCost - pyszneFinalCost);
     if (diff > 0.1) {
         pyszneFinalCostHTML.forEach((product) => {
-            const cleanHTML = product.innerHTML.replace(/[❌✅]/g, '').trim();
+            const cleanHTML = product.innerHTML.split(/[❌✅\(]/)[0].trim();
             product.setAttribute('style', 'color: red');
-            product.innerHTML = `${cleanHTML} ❌`;
+            product.innerHTML = `${cleanHTML} ❌ (${calculatedFinalCost.toFixed(2)})`;
         });
     }
     else {
         pyszneFinalCostHTML.forEach((product) => {
-            const cleanHTML = product.innerHTML.replace(/[❌✅]/g, '').trim();
+            const cleanHTML = product.innerHTML.split(/[❌✅\(]/)[0].trim();
             product.setAttribute('style', 'color: green');
-            product.innerHTML = `${cleanHTML} ✅`;
+            product.innerHTML = `${cleanHTML} ✅ (${calculatedFinalCost.toFixed(2)})`;
         });
     }
 }
