@@ -11,8 +11,10 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
             let summaryArray: any  = [];
             summaryArray.push(namePicker());
             summaryArray.push(getSumsForPersons())
+
             summaryArray.push(getEachCostFromSummary())
-            let pysznePayList:any[] = Array(summaryArray[0].length).fill(25);
+            let pysznePayList:any[] = Array(summaryArray[0].length).fill(30);
+
 
 
 
@@ -41,13 +43,17 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
                 textDiv.style.paddingRight = "5px";
                 textDiv.style.fontSize = fontsize;
 
+
+
                 const pysznePayAmount = document.createElement("input");
                 pysznePayAmount.type = "number";
                 pysznePayAmount.min = "0";
                 pysznePayAmount.step = "0.01";
-                pysznePayAmount.value = "25";
+                pysznePayAmount.value = "30";
                 pysznePayAmount.style.fontSize = fontsize;
                 pysznePayAmount.style.marginRight = "10px";
+
+
 
                 const pysznepayButton = document.createElement("button");
                 pysznepayButton.textContent = "Zapisz"
@@ -227,7 +233,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
 
             copyButtonDiv.appendChild(copyButton);
             receiptBottom?.appendChild(copyButtonDiv);
-            console.log(summaryArray)
+            //console.log(summaryArray)
             validateCalculation(summaryArray);
 
         } else if (attempts > 100) {

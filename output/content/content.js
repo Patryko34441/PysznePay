@@ -12,7 +12,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
             summaryArray.push(namePicker());
             summaryArray.push(getSumsForPersons());
             summaryArray.push(getEachCostFromSummary());
-            let pysznePayList = Array(summaryArray[0].length).fill(25);
+            let pysznePayList = Array(summaryArray[0].length).fill(30);
             let fontsize = "18px";
             peopleDivs.htmlElement.forEach((item, index) => {
                 const extensionWrapper = document.createElement("div");
@@ -34,7 +34,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
                 pysznePayAmount.type = "number";
                 pysznePayAmount.min = "0";
                 pysznePayAmount.step = "0.01";
-                pysznePayAmount.value = "25";
+                pysznePayAmount.value = "30";
                 pysznePayAmount.style.fontSize = fontsize;
                 pysznePayAmount.style.marginRight = "10px";
                 const pysznepayButton = document.createElement("button");
@@ -179,7 +179,7 @@ if (window.location.href.includes("/foodtracker/") || window.location.href.inclu
             };
             copyButtonDiv.appendChild(copyButton);
             receiptBottom === null || receiptBottom === void 0 ? void 0 : receiptBottom.appendChild(copyButtonDiv);
-            console.log(summaryArray);
+            //console.log(summaryArray)
             validateCalculation(summaryArray);
         }
         else if (attempts > 100) {
